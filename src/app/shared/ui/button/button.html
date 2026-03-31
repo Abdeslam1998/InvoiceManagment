@@ -1,0 +1,40 @@
+<button
+  [type]="type"
+  [disabled]="disabled"
+  (click)="onClick.emit($event)"
+  class="transition-all active:scale-95 flex items-center justify-center gap-2 {{extraClasses}}"
+  [class.bg-gradient-to-br]="variant === 'primary'"
+  [class.from-primary]="variant === 'primary'"
+  [class.to-primary-dim]="variant === 'primary'"
+  [class.text-white]="variant === 'primary'"
+  [class.shadow-lg]="variant === 'primary'"
+  [class.hover:-translate-y-px]="variant === 'primary'"
+  [class.hover:shadow-[0px_12px_32px_rgba(43,52,55,0.06)]]="variant === 'primary'"
+  [class.rounded-full]="variant === 'primary' || variant === 'secondary'"
+  [class.px-5]="variant === 'primary' || variant === 'secondary'"
+  [class.py-2.5]="variant === 'primary' || variant === 'secondary'"
+  [class.font-label]="variant === 'primary' || variant === 'secondary'"
+  [class.font-bold]="variant === 'primary' || variant === 'secondary'"
+  [class.text-sm]="variant === 'primary' || variant === 'secondary'"
+  
+  [class.bg-surface-container-high]="variant === 'secondary'"
+  [class.text-on-surface]="variant === 'secondary'"
+  
+  [class.text-on-surface-variant]="variant === 'ghost'"
+  [class.hover:bg-surface-container-high]="variant === 'ghost'"
+  [class.rounded-lg]="variant === 'ghost'"
+  [class.p-2]="variant === 'ghost'"
+  
+  [class.text-error]="variant === 'error'"
+  [class.hover:bg-error-container/20]="variant === 'error'"
+  [class.rounded-lg]="variant === 'error'"
+  [class.p-2]="variant === 'error'"
+  
+  [class.opacity-50]="disabled"
+  [class.cursor-not-allowed]="disabled"
+>
+  @if (icon) {
+    <span class="material-symbols-outlined text-[20px]">{{icon}}</span>
+  }
+  <ng-content></ng-content>
+</button>

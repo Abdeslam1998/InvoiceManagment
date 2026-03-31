@@ -1,0 +1,20 @@
+<div class="space-y-1 w-full">
+  @if (label) {
+    <label class="font-label text-sm tracking-tight text-on-surface-variant font-medium uppercase px-1">
+      {{label}}
+    </label>
+  }
+  <div class="relative flex items-center bg-surface-container-low rounded-xl px-4 py-3 group focus-within:ring-0 border-b-2 border-transparent focus-within:border-primary transition-all">
+    @if (icon) {
+      <span class="material-symbols-outlined text-outline mr-3">{{icon}}</span>
+    }
+    <input 
+      [type]="type"
+      [placeholder]="placeholder"
+      [value]="value"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+      class="bg-transparent border-none focus:ring-0 w-full text-on-surface font-body p-0 placeholder:text-outline"
+    />
+  </div>
+</div>

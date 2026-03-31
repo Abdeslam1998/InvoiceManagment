@@ -1,0 +1,91 @@
+<!-- Search & Filter Section -->
+<div class="mb-8">
+  <app-input placeholder="Rechercher par nom, email ou téléphone..." icon="search" [(ngModel)]="searchTerm"
+    (ngModelChange)="onSearch()"></app-input>
+</div>
+<!-- KPI Summary / Header Action -->
+<div class="flex justify-between items-end mb-6">
+  <div>
+    <p class="font-label text-[10px] font-medium uppercase tracking-wider text-outline mb-1">Active Database</p>
+    <h2 class="font-headline font-bold text-3xl text-on-surface">Clients</h2>
+  </div>
+  <app-button variant="primary" icon="person_add" routerLink="/clients/add">
+    Add Client
+  </app-button>
+</div>
+<!-- Client Table -->
+<div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0px_12px_32px_rgba(43,52,55,0.04)]">
+  <!-- Loading Skeleton -->
+  <ng-container *ngIf="loading">
+    <div class="p-6 space-y-4 animate-pulse">
+      <div *ngFor="let i of [1,2,3,4,5]"
+        class="flex items-center justify-between py-4 border-b border-outline-variant/10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-surface-container-high"></div>
+          <div class="space-y-2">
+            <div class="h-4 w-32 bg-surface-container-high rounded"></div>
+            <div class="h-3 w-48 bg-surface-container-high rounded"></div>
+          </div>
+        </div>
+        <div class="h-8 w-16 bg-surface-container-high rounded-full"></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="filteredClients.length > 0; else noClients">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr
+              class="border-b border-outline-variant/10 text-[10px] font-bold uppercase tracking-widest text-outline-variant bg-surface-container-low/30">
+              <th class="px-6 py-4">Client</th>
+              <th class="px-6 py-4">Contact</th>
+              <th class="px-6 py-4">Adresse</th>
+              <th class="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/5">
+            <tr *ngFor="let client of filteredClients; trackBy: trackById">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary font-bold text-xs">
+                    {{ getInitials(client.name) }}
+                  </div>
+                  <span class="font-headline font-bold text-on-surface">{{ client.name }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <span class="text-sm font-medium text-on-surface">{{ client.email }}</span>
+                  <span class="text-[10px] text-on-surface-variant italic">{{ client.phone || 'N/A' }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-xs text-on-surface-variant">{{ client.address || 'N/A' }}</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex justify-end gap-1">
+                  <app-button variant="ghost" icon="edit" [routerLink]="['/clients/edit', client._id]"
+                    extraClasses="scale-75"></app-button>
+                  <app-button variant="ghost" icon="delete" (onClick)="deleteClient(client._id)"
+                    extraClasses="scale-75 text-error"></app-button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #noClients>
+    <div class="text-center py-20">
+      <span class="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4">person_off</span>
+      <p class="text-on-surface-variant text-sm font-medium">Aucun client trouvé dans la base.</p>
+    </div>
+  </ng-template>
+</div>
+
+<app-fab link="/clients/add"></app-fab>

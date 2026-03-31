@@ -1,0 +1,93 @@
+<div class="space-y-6 pb-40"> <!-- Client Selection Section -->
+  <section class="space-y-2">
+    <label class="font-label text-xs font-bold tracking-widest text-on-surface-variant uppercase px-1">Client</label>
+    <select [(ngModel)]="selectedClientId"
+      class="w-full bg-surface-container-low dark:bg-slate-800 text-on-surface p-4 rounded-2xl border border-outline/10 focus:ring-2 focus:ring-primary outline-none font-body text-base">
+      <option value="">Sélectionner un client...</option>
+      <option *ngFor="let c of clients" [value]="c._id">{{ c.name }}</option>
+    </select>
+  </section>
+
+  <!-- Invoice Date Section -->
+  <section class="space-y-2">
+    <app-input label="Date de Facturation" type="date" [(ngModel)]="invoiceDate"></app-input>
+  </section>
+
+  <!-- Add Products Section -->
+  <section class="space-y-4">
+    <label class="font-label text-xs font-bold tracking-widest text-on-surface-variant uppercase px-1">Produits &
+      Quantités</label>
+
+    <!-- Product Input Row -->
+    <div class="bg-surface-container-low dark:bg-slate-800 rounded-2xl p-4 space-y-4 border border-outline/10">
+      <select [(ngModel)]="selectedProductId"
+        class="w-full bg-white dark:bg-slate-700 text-on-surface p-4 rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary outline-none font-body text-base">
+        <option value="">Sélectionner un produit...</option>
+        <option *ngFor="let p of products" [value]="p._id">{{ p.name }} — {{ p.price | currency:'EUR' }}</option>
+      </select>
+      <app-input placeholder="Quantité" type="number" [(ngModel)]="selectedQuantity" icon="tag"></app-input>
+      <div class="w-full" (click)="addItem()">
+        <app-button variant="secondary" icon="add" extraClasses="w-full"
+          [class.opacity-40]="!selectedProductId || selectedQuantity < 1">
+          Ajouter à la liste
+        </app-button>
+      </div>
+    </div>
+
+    <!-- List of added items -->
+    <div class="space-y-2" *ngIf="items.length > 0">
+      <div *ngFor="let item of items; let i = index"
+        class="bg-surface-container-lowest dark:bg-slate-900 p-4 rounded-2xl flex items-center justify-between group shadow-sm border border-outline/5">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-primary text-lg"
+              style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+          </div>
+          <div>
+            <p class="font-headline font-bold text-on-surface text-sm">{{ item.product.name }}</p>
+            <p class="text-xs text-outline font-medium">{{ item.product.price | currency:'EUR' }} / unité × {{
+              item.quantity }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <p class="font-headline font-bold text-primary">{{ item.product.price * item.quantity | currency:'EUR' }}</p>
+          <button (click)="removeItem(i)"
+            class="text-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 p-1.5 rounded-full">
+            <span class="material-symbols-outlined text-lg">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="items.length === 0"
+      class="text-center py-8 bg-surface-container-low/50 rounded-2xl border border-dashed border-outline/20">
+      <span class="material-symbols-outlined text-3xl text-on-surface-variant">add_shopping_cart</span>
+      <p class="text-on-surface-variant text-sm mt-2">Aucun produit ajouté</p>
+    </div>
+  </section>
+
+  <!-- Total Summary -->
+  <section *ngIf="items.length > 0"
+    class="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-6 space-y-3 border border-primary/10">
+    <div class="flex justify-between items-center text-on-surface-variant text-sm">
+      <span>Sous-total</span>
+      <span class="font-bold">{{ subtotal | currency:'EUR' }}</span>
+    </div>
+    <div class="pt-3 border-t border-primary/10 flex justify-between items-baseline">
+      <span class="font-label font-bold text-on-surface uppercase tracking-wider">TOTAL</span>
+      <span class="font-headline text-3xl font-extrabold text-primary">{{ subtotal | currency:'EUR' }}</span>
+    </div>
+  </section>
+</div>
+
+<!-- Sticky Footer -->
+<!-- Sticky Footer pour la facture -->
+<footer
+  class="fixed bottom-0 left-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-outline/10 px-4 pb-20 pt-4 flex gap-3 z-40">
+  <app-button variant="secondary" routerLink="/factures" extraClasses="flex-1">ANNULER</app-button>
+  <app-button variant="primary" extraClasses="flex-[2]" [disabled]="!selectedClientId || items.length === 0 || loading"
+    (click)="saveInvoice()" icon="receipt_long">
+    {{ loading ? 'ENREGISTREMENT...' : 'CRÉER LA FACTURE' }}
+  </app-button>
+</footer>

@@ -1,0 +1,34 @@
+
+
+<div class="space-y-4 pb-36">
+  @if (isEdit) {
+    <div class="bg-surface-container-lowest rounded-2xl p-5 border-l-4 border-primary shadow-sm">
+      <span class="font-label text-xs tracking-wider uppercase text-outline">Stock Actuel</span>
+      <h2 class="font-headline text-2xl font-bold text-on-surface">{{ stock }} Unités</h2>
+    </div>
+  }
+
+  <section class="space-y-4">
+    <label class="font-label text-xs font-bold tracking-widest text-on-surface-variant uppercase px-1">Détails du Produit</label>
+
+    <app-input label="Nom du Produit" placeholder="Ex: Lait Entier 1L" icon="inventory_2" [(ngModel)]="name"></app-input>
+
+    <div class="grid grid-cols-2 gap-4">
+      <app-input label="Prix Unitaire (€)" placeholder="1.25" type="number" icon="euro" [(ngModel)]="price"></app-input>
+      <app-input label="Stock Initial" placeholder="0" type="number" icon="shelves" [(ngModel)]="stock"></app-input>
+    </div>
+  </section>
+</div>
+
+<footer class="fixed bottom-0 left-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-outline/10 px-4 pb-20 pt-4 flex gap-3 z-40">
+  <app-button variant="secondary" routerLink="/produits" extraClasses="flex-1">ANNULER</app-button>
+  <app-button
+    variant="primary"
+    extraClasses="flex-[2]"
+    [disabled]="loading || !name || price === null || stock === null"
+    (onClick)="save()"
+    [icon]="isEdit ? 'save' : 'add_box'"
+  >
+    {{ isEdit ? 'ENREGISTRER' : 'AJOUTER PRODUIT' }}
+  </app-button>
+</footer>

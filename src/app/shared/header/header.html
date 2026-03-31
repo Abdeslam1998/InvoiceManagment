@@ -1,0 +1,15 @@
+<header class="bg-[#f8f9fa] dark:bg-slate-950 flex items-center w-full px-4 py-3 fixed top-0 z-50 border-b border-outline/5 shadow-sm">
+  <div class="flex items-center gap-2 flex-1">
+    @if (showBack) {
+      <button [routerLink]="backUrl" class="text-slate-500 hover:bg-[#f1f4f6] dark:hover:bg-slate-800 transition-colors p-2 rounded-full flex-shrink-0">
+        <span class="material-symbols-outlined text-xl">arrow_back</span>
+      </button>
+    }
+    <h1 class="font-manrope font-bold text-xl text-[#2B5797] dark:text-blue-400 tracking-tight">{{ title }}</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    @if (title === 'Factures' || title === 'Tableau de Bord') {
+      <app-button variant="primary" icon="add" routerLink="/factures/create" extraClasses="scale-90"></app-button>
+    }
+  </div>
+</header>

@@ -1,0 +1,108 @@
+<!-- Search & Filter Section -->
+<section class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-bold font-headline tracking-tight text-on-surface">Factures</h2>
+    <app-button variant="primary" icon="add" routerLink="/factures/create">
+      Create New Invoice
+    </app-button>
+  </div>
+  <div class="grid grid-cols-1 gap-3">
+    <app-input placeholder="Search by client or invoice..." icon="search" [(ngModel)]="searchTerm"></app-input>
+  </div>
+</section>
+<!-- KPI Summary / Visual Emphasis -->
+<section class="grid grid-cols-2 gap-4">
+  <div class="bg-surface-container-lowest p-6 rounded-3xl shadow-[0px_12px_32px_rgba(43,52,55,0.04)]">
+    <p class="text-[10px] font-bold font-label uppercase tracking-widest text-outline mb-1">Total Unpaid</p>
+    <div class="flex items-baseline gap-1">
+      <span class="text-3xl font-extrabold font-headline text-error">{{ totalUnpaid | currency:'EUR' }}</span>
+    </div>
+    <div class="mt-2 flex items-center gap-1">
+      <span class="material-symbols-outlined text-[16px] text-error">trending_up</span>
+      <span class="text-xs text-error font-medium">{{ unpaidCount }} invoices due</span>
+    </div>
+  </div>
+  <div class="bg-surface-container-lowest p-6 rounded-3xl shadow-[0px_12px_32px_rgba(43,52,55,0.04)]">
+    <p class="text-[10px] font-bold font-label uppercase tracking-widest text-outline mb-1">Collected</p>
+    <div class="flex items-baseline gap-1">
+      <span class="text-3xl font-extrabold font-headline text-primary">{{ totalCollected | currency:'EUR' }}</span>
+    </div>
+    <div class="mt-2 flex items-center gap-1">
+      <span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+      <span class="text-xs text-primary font-medium">This month</span>
+    </div>
+  </div>
+</section>
+<!-- Invoices List -->
+<section class="space-y-4">
+  <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0px_12px_32px_rgba(43,52,55,0.04)]">
+    <!-- Loading Skeleton -->
+    <ng-container *ngIf="loading">
+      <div class="p-6 space-y-4 animate-pulse">
+        <div *ngFor="let i of [1,2,3,4,5]" class="flex items-center justify-between py-4 border-b border-outline-variant/10">
+          <div class="space-y-2">
+            <div class="h-4 w-24 bg-surface-container-high rounded"></div>
+            <div class="h-3 w-40 bg-surface-container-high rounded"></div>
+          </div>
+          <div class="h-6 w-20 bg-surface-container-high rounded-full"></div>
+          <div class="h-8 w-24 bg-surface-container-high rounded ml-4"></div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!loading">
+      <ng-container *ngIf="invoices.length > 0; else noInvoices">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-outline-variant/10 text-[10px] font-bold uppercase tracking-widest text-outline-variant bg-surface-container-low/30">
+                <th class="px-6 py-4">Facture</th>
+                <th class="px-6 py-4">Client</th>
+                <th class="px-6 py-4">Statut</th>
+                <th class="px-6 py-4 text-right">Montant</th>
+                <th class="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/5">
+              <tr *ngFor="let invoice of filteredInvoices" [routerLink]="['/factures', invoice._id]" class="hover:bg-surface-container-low/50 transition-colors group cursor-pointer">
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <span class="font-headline font-bold text-on-surface">{{ invoice.invoiceNumber || 'NEW' }}</span>
+                    <span class="text-[10px] text-outline italic">{{ invoice.date | date:'mediumDate' }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-sm font-medium text-on-surface">{{ getClientName(invoice.clientId) }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <app-status-chip [status]="invoice.status"></app-status-chip>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex flex-col items-end">
+                    <span class="font-bold text-on-surface">{{ invoice.total | currency:'EUR' }}</span>
+                    <span *ngIf="invoice.remaining > 0" class="text-[10px] text-error font-medium">Reste: {{ invoice.remaining | currency:'EUR' }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex justify-end gap-1">
+                    <app-button variant="ghost" icon="visibility" [routerLink]="['/factures', invoice._id]" extraClasses="scale-75"></app-button>
+                    <app-button variant="ghost" icon="delete" (onClick)="deleteInvoice(invoice._id, $event)" extraClasses="scale-75 text-error"></app-button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <ng-template #noInvoices>
+      <div class="text-center py-20">
+        <span class="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4">receipt_long</span>
+        <p class="text-on-surface-variant text-sm font-medium">Aucune facture trouvée.</p>
+      </div>
+    </ng-template>
+  </div>
+</section>
+
+<app-fab link="/factures/create"></app-fab>
