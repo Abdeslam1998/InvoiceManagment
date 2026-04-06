@@ -16,7 +16,7 @@
     
     <div class="space-y-4">
       <app-input label="Adresse Email" type="email" placeholder="admin@laiterie.com" icon="mail" [(ngModel)]="email"></app-input>
-      <app-input label="Mot de passe" type="password" placeholder="••••••••" icon="lock" [(ngModel)]="password"></app-input>
+      <app-input label="Mot de passe" type="password" placeholder="••••••••" icon="lock" [showPasswordToggle]="true" [(ngModel)]="password"></app-input>
       
       <div *ngIf="error" class="bg-error-container/40 text-on-error-container text-xs p-3 rounded-xl flex items-center gap-2 border border-error/10 animate-fade-in">
         <span class="material-symbols-outlined text-[16px] text-error">error</span>

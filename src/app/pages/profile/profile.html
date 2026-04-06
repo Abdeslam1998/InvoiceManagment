@@ -5,6 +5,53 @@
   </section>
   
   <section class="space-y-4">
+    <label class="font-label text-sm tracking-tight text-on-surface-variant font-medium uppercase px-1">Profil enregistré</label>
+    <div *ngIf="!loading; else loadingProfile" class="bg-surface-container-low p-4 rounded-3xl space-y-3">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <span class="text-xs uppercase text-on-surface-variant">Responsable</span>
+          <p class="font-medium">{{ profile.responsibleName || 'Non renseigné' }}</p>
+        </div>
+        <div>
+          <span class="text-xs uppercase text-on-surface-variant">Société</span>
+          <p class="font-medium">{{ profile.companyName || 'Non renseigné' }}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <span class="text-xs uppercase text-on-surface-variant">Email</span>
+          <p class="font-medium">{{ profile.email || 'Non renseigné' }}</p>
+        </div>
+        <div>
+          <span class="text-xs uppercase text-on-surface-variant">Téléphone</span>
+          <p class="font-medium">{{ profile.phone || 'Non renseigné' }}</p>
+        </div>
+      </div>
+      <div>
+        <span class="text-xs uppercase text-on-surface-variant">Adresse</span>
+        <p class="font-medium">{{ profile.address || 'Non renseigné' }}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 mt-4">
+      <app-button variant="secondary" icon="lock" extraClasses="w-full sm:w-auto" (onClick)="showPasswordForm = !showPasswordForm">
+        {{ showPasswordForm ? 'Masquer le mot de passe' : 'Modifier le mot de passe' }}
+      </app-button>
+      <app-button variant="secondary" icon="logout" extraClasses="w-full sm:w-auto" (onClick)="logout()">
+        Déconnexion
+      </app-button>
+    </div>
+  </section>
+
+  <ng-template #loadingProfile>
+    <div class="space-y-3 animate-pulse">
+      <div class="h-4 bg-surface-container-high rounded"></div>
+      <div class="h-4 bg-surface-container-high rounded"></div>
+      <div class="h-4 bg-surface-container-high rounded"></div>
+    </div>
+  </ng-template>
+
+  <section class="space-y-4 pt-4 border-t border-outline-variant/10">
     <label class="font-label text-sm tracking-tight text-on-surface-variant font-medium uppercase px-1">Informations Administrateur</label>
     
     <app-input label="Email" placeholder="admin@exemple.com" icon="mail" [(ngModel)]="profile.email" type="email"></app-input>
@@ -17,6 +64,21 @@
     <app-input label="Nom de la Société" placeholder="Ma Laiterie SARL" icon="business" [(ngModel)]="profile.companyName"></app-input>
     <app-input label="Adresse" placeholder="123 Rue de la Ferme" icon="location_on" [(ngModel)]="profile.address"></app-input>
     <app-input label="Téléphone" placeholder="+212 6..." icon="call" [(ngModel)]="profile.phone"></app-input>
+  </section>
+
+  <section *ngIf="showPasswordForm" class="space-y-4 pt-4 border-t border-outline-variant/10">
+    <label class="font-label text-sm tracking-tight text-on-surface-variant font-medium uppercase px-1">Modifier le mot de passe</label>
+    <app-input label="Ancien mot de passe" placeholder="••••••••" icon="lock" type="password" [showPasswordToggle]="true" [(ngModel)]="oldPassword"></app-input>
+    <app-input label="Nouveau mot de passe" placeholder="••••••••" icon="lock" type="password" [showPasswordToggle]="true" [(ngModel)]="newPassword"></app-input>
+    <app-input label="Confirmer le nouveau mot de passe" placeholder="••••••••" icon="lock" type="password" [showPasswordToggle]="true" [(ngModel)]="confirmPassword"></app-input>
+    <p class="text-xs text-on-surface-variant">Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.</p>
+    <p *ngIf="passwordError" class="text-sm text-error">{{ passwordError }}</p>
+    <p *ngIf="passwordSuccessMessage" class="text-sm text-success">{{ passwordSuccessMessage }}</p>
+    <div>
+      <app-button variant="primary" icon="save" extraClasses="w-full" (onClick)="savePassword()" [disabled]="loading">
+        Changer le mot de passe
+      </app-button>
+    </div>
   </section>
 
   @if (successMessage) {

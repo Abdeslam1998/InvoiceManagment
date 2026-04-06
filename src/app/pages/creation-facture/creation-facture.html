@@ -23,9 +23,10 @@
       <select [(ngModel)]="selectedProductId"
         class="w-full bg-white dark:bg-slate-700 text-on-surface p-4 rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary outline-none font-body text-base">
         <option value="">Sélectionner un produit...</option>
-        <option *ngFor="let p of products" [value]="p._id">{{ p.name }} — {{ p.price | currency:'EUR' }}</option>
+        <option *ngFor="let p of availableProducts" [value]="p._id">{{ p.name }} — {{ p.price | currency:'EUR' }} ({{ p.stock }} en stock)</option>
       </select>
       <app-input placeholder="Quantité" type="number" [(ngModel)]="selectedQuantity" icon="tag"></app-input>
+      <p *ngIf="productError" class="text-sm text-error mt-1">{{ productError }}</p>
       <div class="w-full" (click)="addItem()">
         <app-button variant="secondary" icon="add" extraClasses="w-full"
           [class.opacity-40]="!selectedProductId || selectedQuantity < 1">
@@ -78,6 +79,21 @@
       <span class="font-label font-bold text-on-surface uppercase tracking-wider">TOTAL</span>
       <span class="font-headline text-3xl font-extrabold text-primary">{{ subtotal | currency:'EUR' }}</span>
     </div>
+  </section>
+
+  <section class="space-y-2 pt-4" *ngIf="items.length > 0">
+    <label class="font-label text-xs font-bold tracking-widest text-on-surface-variant uppercase px-1">Statut de la facture</label>
+    <select [(ngModel)]="selectedStatus"
+      class="w-full bg-surface-container-low dark:bg-slate-800 text-on-surface p-4 rounded-2xl border border-outline/10 focus:ring-2 focus:ring-primary outline-none font-body text-base">
+      <option value="unpaid">Non payée (par défaut)</option>
+      <option value="partial">Partiellement payée</option>
+      <option value="paid">Payée</option>
+    </select>
+    <div *ngIf="selectedStatus === 'partial'" class="space-y-2">
+      <app-input label="Montant payé" type="number" [(ngModel)]="paidAmount" icon="payments"></app-input>
+    </div>
+    <p class="text-sm text-on-surface-variant">Si aucun statut n’est choisi, la facture sera enregistrée comme non payée.</p>
+    <p *ngIf="statusError" class="text-sm text-error">{{ statusError }}</p>
   </section>
 </div>
 

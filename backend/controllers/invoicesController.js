@@ -60,38 +60,62 @@ const createInvoice = async (req, res) => {
     const invoiceNumber = String(counter.value).padStart(4, "0");
 
     let totalInvoice = 0;
+    const paidAmount = req.body.paidAmount || 0;
+    const status = req.body.status || 'unpaid';
 
-    const invoiceProducts = await Promise.all(
-      products.map(async (item) => {
-        const product = await Product.findById(item.productId);
+    const invoiceProducts = [];
 
-        if (!product) throw new Error("Product not found");
+    for (const item of products) {
+      const product = await Product.findById(item.productId);
+      if (!product) return res.status(404).json({ message: `Produit introuvable : ${item.productId}` });
 
-        const price = product.price;
-        const productTotal = price * item.quantity;
+      if (product.stock <= 0) {
+        return res.status(400).json({ message: `Le produit ${product.name} est épuisé.` });
+      }
 
-        totalInvoice += productTotal;
+      if (item.quantity > product.stock) {
+        return res.status(400).json({
+          message: `Quantité insuffisante pour ${product.name}. Disponible : ${product.stock}.`
+        });
+      }
 
-        return {
-          productId: item.productId,
-          quantity: item.quantity,
-          price,
-          total: productTotal
-        };
-      })
-    );
+      const price = product.price;
+      const productTotal = price * item.quantity;
+      totalInvoice += productTotal;
+
+      invoiceProducts.push({
+        productId: item.productId,
+        quantity: item.quantity,
+        price,
+        total: productTotal
+      });
+    }
+
+    let remaining = totalInvoice;
+    if (status === 'paid') {
+      remaining = 0;
+    } else if (status === 'partial') {
+      if (paidAmount <= 0 || paidAmount >= totalInvoice) {
+        return res.status(400).json({ message: 'Le montant payé partiel doit être supérieur à 0 et inférieur au total de la facture.' });
+      }
+      remaining = totalInvoice - paidAmount;
+    }
 
     const invoice = new Invoice({
         invoiceNumber,
         clientId,
         products: invoiceProducts,
         total: totalInvoice,
-        remaining: totalInvoice, 
-        status: "unpaid",         
+        remaining,
+        status,
         date: date ? date : new Date()
     });
 
     await invoice.save();
+
+    await Promise.all(products.map(item =>
+      Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } })
+    ));
 
     res.status(201).json(invoice);
 

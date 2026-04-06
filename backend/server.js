@@ -7,6 +7,7 @@ const adminRoutes = require("./routes/admin");
 const clientRoutes = require("./routes/client");
 const productRoutes = require("./routes/product");
 const invoiceRoutes = require("./routes/invoice");
+const { initDefaultAdmin } = require("./controllers/adminController");
 
 const app = express();
 app.use(cors());
@@ -14,7 +15,10 @@ app.use(express.json());
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
+  .then(async () => {
+    console.log("MongoDB connected");
+    await initDefaultAdmin();
+  })
   .catch(err => console.error(err));
 
 // Routes

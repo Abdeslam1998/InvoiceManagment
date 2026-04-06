@@ -34,7 +34,11 @@ export class CreationFacture implements OnInit {
 
   selectedProductId: string = '';
   selectedQuantity: number = 1;
+  selectedStatus: 'unpaid' | 'partial' | 'paid' = 'unpaid';
+  paidAmount: number | null = null;
   loading = false;
+  productError = '';
+  statusError = '';
 
   items: InvoiceItemForm[] = [];
 
@@ -43,19 +47,40 @@ export class CreationFacture implements OnInit {
     this.productService.getProducts().subscribe(p => this.products = p);
   }
 
+  get availableProducts(): Product[] {
+    return this.products.filter(p => p.stock > 0);
+  }
+
   addItem() {
+    this.productError = '';
     const product = this.products.find(p => p._id === this.selectedProductId);
-    if (product && this.selectedQuantity > 0) {
-      // Prevent duplicates
-      const exists = this.items.find(i => i.product._id === product._id);
-      if (exists) {
-        exists.quantity += this.selectedQuantity;
-      } else {
-        this.items.push({ product, quantity: this.selectedQuantity });
-      }
-      this.selectedProductId = '';
-      this.selectedQuantity = 1;
+    if (!product) return;
+
+    if (product.stock === 0) {
+      this.productError = 'Ce produit est épuisé.';
+      return;
     }
+
+    if (this.selectedQuantity < 1) {
+      this.productError = 'Veuillez entrer une quantité valide.';
+      return;
+    }
+
+    const existing = this.items.find(i => i.product._id === product._id);
+    const newQuantity = existing ? existing.quantity + this.selectedQuantity : this.selectedQuantity;
+    if (newQuantity > product.stock) {
+      this.productError = `Quantité maximale disponible : ${product.stock}.`;
+      return;
+    }
+
+    if (existing) {
+      existing.quantity = newQuantity;
+    } else {
+      this.items.push({ product, quantity: this.selectedQuantity });
+    }
+
+    this.selectedProductId = '';
+    this.selectedQuantity = 1;
   }
 
   removeItem(index: number) {
@@ -68,12 +93,30 @@ export class CreationFacture implements OnInit {
 
   saveInvoice() {
     if (!this.selectedClientId || this.items.length === 0) return;
+    this.statusError = '';
+
+    if (this.selectedStatus === 'partial') {
+      if (this.paidAmount === null || this.paidAmount <= 0) {
+        this.statusError = 'Veuillez saisir le montant payé.';
+        return;
+      }
+      if (this.paidAmount >= this.subtotal) {
+        this.statusError = 'Le montant payé doit être inférieur au total pour un statut partiel.';
+        return;
+      }
+    }
+
+    if (this.selectedStatus === 'paid') {
+      this.paidAmount = this.subtotal;
+    }
+
     this.loading = true;
 
-    // Backend calculates total, remaining, invoiceNumber automatically
     const payload = {
       clientId: this.selectedClientId,
       date: this.invoiceDate,
+      status: this.selectedStatus,
+      paidAmount: this.selectedStatus === 'unpaid' ? 0 : this.paidAmount,
       products: this.items.map(item => ({
         productId: item.product._id || '',
         quantity: item.quantity,

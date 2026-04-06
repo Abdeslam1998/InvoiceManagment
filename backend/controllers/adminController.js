@@ -61,18 +61,39 @@ const getProfile = async (req, res) => {
 // Update profile
 const updateProfile = async (req, res) => {
   try {
-    const { responsibleName, companyName, address, phone, email } = req.body;
+    const { responsibleName, companyName, address, phone, email, oldPassword, newPassword } = req.body;
     const admin = await Admin.findById(req.adminId);
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
-    if (responsibleName) admin.responsibleName = responsibleName;
-    if (companyName) admin.companyName = companyName;
-    if (address) admin.address = address;
-    if (phone) admin.phone = phone;
-    if (email) admin.email = email;
+    if (oldPassword || newPassword) {
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({ message: "Veuillez fournir l'ancien et le nouveau mot de passe." });
+      }
+
+      const isMatch = await bcrypt.compare(oldPassword, admin.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "L'ancien mot de passe est incorrect." });
+      }
+
+      if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+        return res.status(400).json({ message: "Le nouveau mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre." });
+      }
+
+      admin.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (responsibleName !== undefined) admin.responsibleName = responsibleName;
+    if (companyName !== undefined) admin.companyName = companyName;
+    if (address !== undefined) admin.address = address;
+    if (phone !== undefined) admin.phone = phone;
+    if (email !== undefined) admin.email = email;
 
     await admin.save();
-    res.json({ message: "Profile updated successfully", admin });
+
+    const adminResponse = admin.toObject();
+    delete adminResponse.password;
+
+    res.json({ message: "Profile updated successfully", admin: adminResponse });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
