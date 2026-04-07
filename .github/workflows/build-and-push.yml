@@ -152,11 +152,8 @@ jobs:
           ARCHIVE=deploy_prod.tar.gz
           rm -f "$ARCHIVE"
           if [ -d "compose-prod" ]; then
-            cd compose-prod
-            # Copy .env file into compose-prod directory
-            cp ../.env .env
-            tar -czf ../$ARCHIVE --exclude='.git' --exclude='Dockerfile*' .
-            cd - >/dev/null
+            cp .env compose-prod/.env
+            tar --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='deploy_prod.tar.gz' -czf "$ARCHIVE" .
           else
             echo "Warning: compose-prod directory not found, creating empty archive"
             tar -czf "$ARCHIVE" --files-from /dev/null
@@ -237,12 +234,12 @@ jobs:
             fi
 
             echo "=== Deploying application to production ==="
-            docker compose pull || true
-            docker compose down --remove-orphans || true
-            docker compose up -d
+            docker compose -f compose-prod/docker-compose.yml pull || true
+            docker compose -f compose-prod/docker-compose.yml down --remove-orphans || true
+            docker compose -f compose-prod/docker-compose.yml up -d
 
             echo "=== Checking container status ==="
-            docker compose ps
+            docker compose -f compose-prod/docker-compose.yml ps
             
             echo "=== Cleaning up old images ==="
             docker image prune -af --filter "until=24h" || true
