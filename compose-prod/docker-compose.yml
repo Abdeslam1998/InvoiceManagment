@@ -1,0 +1,47 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: invoicemgmt-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build:
+      context: ..
+      dockerfile: compose-prod/Dockerfile
+      target: backend-runtime
+    container_name: invoicemgmt-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      JWT_SECRET: "JIy6K885S{R3$$iN,v3LaJL@39JtvB)}x"
+      MONGO_URI: mongodb://mongo:27017/laiterie
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: compose-prod/Dockerfile
+      target: frontend-runtime
+    container_name: invoicemgmt-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  mongo_data:
