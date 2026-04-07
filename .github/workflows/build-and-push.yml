@@ -152,9 +152,13 @@ jobs:
           ARCHIVE=deploy_prod.tar.gz
           rm -f "$ARCHIVE"
           if [ -d "compose-prod" ]; then
-            cp .env compose-prod/.env
-            tar --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='deploy_prod.tar.gz' -czf "$ARCHIVE" compose-prod
-            rm -f compose-prod/.env
+            TMPDIR=$(mktemp -d)
+            rsync -a --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude="$ARCHIVE" ./ "$TMPDIR"/
+            cp .env "$TMPDIR/compose-prod/.env"
+            cd "$TMPDIR"
+            tar -czf "$OLDPWD/$ARCHIVE" .
+            cd "$OLDPWD"
+            rm -rf "$TMPDIR"
           else
             echo "Warning: compose-prod directory not found, creating empty archive"
             tar -czf "$ARCHIVE" --files-from /dev/null
