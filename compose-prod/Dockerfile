@@ -14,30 +14,14 @@ RUN npm ci --omit=dev
 FROM node:20-alpine AS backend-runtime
 WORKDIR /app/backend
 ENV NODE_ENV=production
+# Copy installed dependencies from deps stage
 COPY --from=backend-deps /app/backend/node_modules ./node_modules
-COPY backend/ .
+# Copy source code (excluding package files and dev files)
+COPY backend/server.js ./
+COPY backend/config ./config/
+COPY backend/controllers ./controllers/
+COPY backend/middleware ./middleware/
+COPY backend/models ./models/
+COPY backend/routes ./routes/
 EXPOSE 3000
 CMD ["node", "server.js"]
-
-############################
-# Frontend build
-############################
-FROM node:20-alpine AS frontend-build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY angular.json ./
-COPY tsconfig*.json ./
-COPY tailwind.config.js ./
-COPY src ./src
-COPY public ./public
-RUN npm run build -- --configuration production
-
-############################
-# Frontend runtime (Nginx)
-############################
-FROM nginx:1.27-alpine AS frontend-runtime
-RUN printf 'server {\n  listen 80;\n  server_name _;\n  root /usr/share/nginx/html;\n  index index.html;\n\n  location / {\n    try_files $uri $uri/ /index.html;\n  }\n}\n' > /etc/nginx/conf.d/default.conf
-COPY --from=frontend-build /app/dist/pristine-flow/browser /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
