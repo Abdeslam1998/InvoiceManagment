@@ -153,7 +153,8 @@ jobs:
           rm -f "$ARCHIVE"
           if [ -d "compose-prod" ]; then
             cp .env compose-prod/.env
-            tar --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='deploy_prod.tar.gz' -czf "$ARCHIVE" .
+            tar --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='deploy_prod.tar.gz' -czf "$ARCHIVE" compose-prod
+            rm -f compose-prod/.env
           else
             echo "Warning: compose-prod directory not found, creating empty archive"
             tar -czf "$ARCHIVE" --files-from /dev/null
