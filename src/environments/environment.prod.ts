@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://gestionfacture-backend.d-itcompanytunis.com/api'
+  apiUrl: (typeof window !== 'undefined' && (window as any).env?.API_URL) || 'http://localhost:3000/api'
 };

@@ -39,6 +39,8 @@ services:
     image: ghcr.io/abdeslam1998/invoicemanagment-frontend:latest
     container_name: invoicemgmt-frontend
     restart: unless-stopped
+    environment:
+      API_URL: https://gestionfacture-backend.d-itcompanytunis.com/api
     depends_on:
       - backend
     labels:
