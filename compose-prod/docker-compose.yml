@@ -1,10 +1,32 @@
 services:
+  traefik:
+    image: traefik:v3.6
+    container_name: invoicemgmt-traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@gestionfacture.d-itcompanytunis.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt_data:/letsencrypt
+    networks:
+      - traefik-net
+
   mongo:
     image: mongo:7
     container_name: invoicemgmt-mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -13,6 +35,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - traefik-net
 
   backend:
     build:
@@ -28,8 +52,14 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    ports:
-      - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`gestionfacture-backend.d-itcompanytunis.com`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+    networks:
+      - traefik-net
 
   frontend:
     build:
@@ -40,8 +70,27 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "4200:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`www.gestionfacture.d-itcompanytunis.com`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.routers.frontend-redirect.rule=Host(`gestionfacture.d-itcompanytunis.com`)"
+      - "traefik.http.routers.frontend-redirect.entrypoints=web"
+      - "traefik.http.routers.frontend-redirect.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.frontend-redirect.middlewares=redirect-to-www"
+      - "traefik.http.middlewares.redirect-to-www.redirectregex.regex=^https://gestionfacture.d-itcompanytunis.com/(.*)"
+      - "traefik.http.middlewares.redirect-to-www.redirectregex.replacement=https://www.gestionfacture.d-itcompanytunis.com/$${1}"
+      - "traefik.http.middlewares.redirect-to-www.redirectregex.permanent=true"
+    networks:
+      - traefik-net
 
 volumes:
   mongo_data:
+  letsencrypt_data:
+
+networks:
+  traefik-net:
+    driver: bridge
