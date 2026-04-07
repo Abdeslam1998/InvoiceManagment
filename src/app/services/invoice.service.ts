@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Client } from './client.service';
 import { Product } from './product.service';
+import { environment } from '../../environments/environment';
 
 export interface InvoiceItem {
   productId: string | Product;
@@ -26,7 +27,7 @@ export interface Invoice {
   providedIn: 'root'
 })
 export class InvoiceService {
-  private apiUrl = 'http://localhost:3000/api/invoices';
+  private apiUrl = `${environment.apiUrl}/invoices`;
 
   constructor(private http: HttpClient) {}
 

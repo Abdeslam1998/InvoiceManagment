@@ -49,6 +49,7 @@ services:
       PORT: 3000
       JWT_SECRET: "JIy6K885S{R3$$iN,v3LaJL@39JtvB)}x"
       MONGO_URI: mongodb://mongo:27017/laiterie
+      FRONTEND_URL: https://www.gestionfacture.d-itcompanytunis.com
     depends_on:
       mongo:
         condition: service_healthy
