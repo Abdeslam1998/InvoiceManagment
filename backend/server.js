@@ -21,7 +21,12 @@ app.use(express.json());
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
+  .then(() => {
+    console.log("MongoDB connected");
+    // Initialize default admin after DB connection
+    const { initDefaultAdmin } = require("./controllers/adminController");
+    initDefaultAdmin();
+  })
   .catch(err => console.error(err));
 
 // Routes
