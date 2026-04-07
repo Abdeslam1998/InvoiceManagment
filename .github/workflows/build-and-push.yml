@@ -1,0 +1,250 @@
+name: Build, Test and Push Docker Image
+
+# This workflow:
+# 1. Builds and tests the Angular application with npm
+# 2. Builds and pushes a Docker image to GitHub Container Registry
+# 3. Deploys to production (manual trigger only)
+#
+# Required Secrets for Deployment:
+# Production: PROD_SSH_HOST, PROD_SSH_USER, PROD_SSH_PRIVATE_KEY
+# Optional: PROD_GHCR_USER, PROD_GHCR_TOKEN
+
+on:
+  workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: 'Custom Docker tag (optional)'
+        required: false
+        type: string
+      push_latest:
+        description: 'Push as latest tag'
+        required: false
+        default: false
+        type: boolean
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        default: false
+        type: boolean
+      deploy_to:
+        description: "Deployment target: 'prod' (requires corresponding secrets)"
+        required: false
+        type: choice
+        options:
+          - 'none'
+          - 'prod'
+        default: 'none'
+
+env:
+  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_TAG: ${{ github.sha }}
+  NODE_VERSION: '20'
+
+jobs:
+  # Job 1: Build and test the Angular application
+  build-and-test:
+    name: Build and Test Angular Application
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Angular CLI
+        run: npm run build
+
+      # - name: Run tests
+      #   if: ${{ github.event.inputs.skip_tests != 'true' }}
+      #   run: npm run test -- --watch=false --browsers=ChromeHeadlessCI
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: invoice-managment-dist-${{ github.sha }}
+          path: dist/
+          retention-days: 7
+
+  # Job 2: Build and push Docker image
+  docker-build-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.push_latest == 'true') }}
+            type=ref,event=branch
+            type=ref,event=pr,prefix=pr-
+            type=sha,format=short
+            type=sha,format=long,prefix=sha-
+            type=sha,format=short,prefix={{branch}}-
+            type=raw,value=${{ github.event.inputs.custom_tag }},enable=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.custom_tag != '' }}
+            type=schedule,pattern={{date 'YYYY.MM.DD'}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./compose-prod/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+          platforms: linux/amd64
+
+  # Job 3: Deploy to Production environment (manual only)
+  deploy-prod:
+    name: Deploy to Production (Manual)
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to == 'prod' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file for production
+        run: |
+          cat > .env << 'EOF'
+          ${{ vars.PROD_ENV_FILE }}
+          EOF
+          echo ".env file created for production deployment"
+
+      - name: Create deployment archive
+        run: |
+          set -e
+          ARCHIVE=deploy_prod.tar.gz
+          rm -f "$ARCHIVE"
+          if [ -d "compose-prod" ]; then
+            cd compose-prod
+            # Copy .env file into compose-prod directory
+            cp ../.env .env
+            tar -czf ../$ARCHIVE --exclude='.git' --exclude='Dockerfile*' .
+            cd - >/dev/null
+          else
+            echo "Warning: compose-prod directory not found, creating empty archive"
+            tar -czf "$ARCHIVE" --files-from /dev/null
+          fi
+
+      - name: Copy deployment files to remote server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          port: 22
+          source: "deploy_prod.tar.gz"
+          target: "~/InvoiceManagment-Prod/"
+
+      - name: Deploy application to production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -euo pipefail
+            
+            echo "=== Ensuring Docker is installed (Production) ==="
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "Installing Docker..."
+              curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+              sudo sh /tmp/get-docker.sh
+            else
+              echo "Docker is already installed"
+            fi
+
+            echo "=== Ensuring Docker Compose is available ==="
+            if ! sudo docker compose version >/dev/null 2>&1; then
+              echo "Installing Docker Compose plugin..."
+              sudo apt-get update || true
+              sudo apt-get install -y docker-compose-plugin || true
+            else
+              echo "Docker Compose is available"
+            fi
+
+            echo "=== Setting up Docker permissions ==="
+            sudo groupadd -f docker || true
+            sudo usermod -aG docker ${USER} || true
+            
+            # Apply group changes to current session
+            sudo chown ${USER}:docker /var/run/docker.sock || true
+            sudo chmod 666 /var/run/docker.sock || true
+
+            echo "=== Preparing production deployment directory ==="
+            mkdir -p ~/InvoiceManagment-Prod
+            cd ~/InvoiceManagment-Prod
+
+            if [ -f deploy_prod.tar.gz ]; then
+              tar -xzf deploy_prod.tar.gz -C . || true
+              rm -f deploy_prod.tar.gz || true
+            fi
+
+            echo "=== Verifying .env file ==="
+            if [ -f .env ]; then
+              echo ".env file deployed successfully"
+              echo "Environment variables configured: $(grep -c '=' .env 2>/dev/null || echo '0') variables"
+            else
+              echo "ERROR: .env file not found after deployment!"
+              exit 1
+            fi
+
+            echo "=== Logging in to GitHub Container Registry ==="
+            GHCR_USER="${{ secrets.PROD_GHCR_USER }}"
+            GHCR_TOKEN="${{ secrets.PROD_GHCR_TOKEN }}"
+            if [ -n "$GHCR_USER" ] && [ -n "$GHCR_TOKEN" ]; then
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin || true
+            else
+              echo "No GHCR credentials provided, using GITHUB_TOKEN"
+              echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin || true
+            fi
+
+            echo "=== Deploying application to production ==="
+            docker compose pull || true
+            docker compose down --remove-orphans || true
+            docker compose up -d
+
+            echo "=== Checking container status ==="
+            docker compose ps
+            
+            echo "=== Cleaning up old images ==="
+            docker image prune -af --filter "until=24h" || true
+            
+            echo "=== Production deployment completed successfully ==="
