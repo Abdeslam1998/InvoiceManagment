@@ -39,10 +39,7 @@ services:
       - traefik-net
 
   backend:
-    build:
-      context: ..
-      dockerfile: compose-prod/Dockerfile
-      target: backend-runtime
+    image: ghcr.io/abdeslam1998/invoicemanagment:latest
     container_name: invoicemgmt-backend
     restart: unless-stopped
     environment:
@@ -63,10 +60,7 @@ services:
       - traefik-net
 
   frontend:
-    build:
-      context: ..
-      dockerfile: compose-prod/Dockerfile
-      target: frontend-runtime
+    image: ghcr.io/abdeslam1998/invoicemanagment:latest
     container_name: invoicemgmt-frontend
     restart: unless-stopped
     depends_on:
