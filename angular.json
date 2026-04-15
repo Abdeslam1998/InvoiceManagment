@@ -17,6 +17,8 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist/pristine-flow",
+            "index": "src/index.html",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -27,6 +29,9 @@
             ],
             "styles": [
               "src/styles.css"
+            ],
+            "polyfills": [
+              "zone.js"
             ]
           },
           "configurations": {
