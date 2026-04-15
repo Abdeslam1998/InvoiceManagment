@@ -7,7 +7,7 @@
       <span class="material-symbols-outlined">arrow_back</span>
       <span class="font-bold text-sm">Retour</span>
     </button>
-    <app-button variant="primary" icon="print" (onClick)="print()">IMPRIMER</app-button>
+    <app-button variant="primary" icon="print" class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white" (onClick)="print()">IMPRIMER</app-button>
   </section>
 
   <!-- Loading -->
@@ -27,7 +27,6 @@
           <p class="font-medium">Responsable : {{ adminProfile?.responsibleName || 'Nom du responsable' }}</p>
           <p>{{ adminProfile?.address || 'Adresse de la société' }}</p>
           <p>{{ adminProfile?.phone || 'Téléphone' }}</p>
-          <p>{{ adminProfile?.email || 'email@societe.com' }}</p>
         </div>
       </div>
       <div class="text-right">
@@ -66,8 +65,8 @@
           <tr *ngFor="let item of invoice.products">
             <td class="py-4 font-medium">{{ getProductName(item) }}</td>
             <td class="py-4 text-center">{{ item.quantity }}</td>
-            <td class="py-4 text-right">{{ item.price | currency:'EUR' }}</td>
-            <td class="py-4 text-right font-bold">{{ item.quantity * item.price | currency:'EUR' }}</td>
+            <td class="py-4 text-right">{{ item.price | currency:'TND ' }}</td>
+            <td class="py-4 text-right font-bold">{{ item.quantity * item.price | currency:'TND ' }}</td>
           </tr>
         </tbody>
       </table>
@@ -78,21 +77,21 @@
       <div class="w-64 space-y-3">
         <div class="flex justify-between text-on-surface-variant">
           <span>Sous-total</span>
-          <span>{{ invoice.total | currency:'EUR' }}</span>
+          <span>{{ invoice.total | currency:'TND ' }}</span>
         </div>
         <div
           class="flex justify-between text-2xl font-extrabold text-[#2B5797] border-t pt-3 border-outline-variant/10">
           <span>TOTAL</span>
-          <span>{{ invoice.total | currency:'EUR' }}</span>
+          <span>{{ invoice.total | currency:'TND ' }}</span>
         </div>
         <div class="pt-4 space-y-2">
           <div class="flex justify-between text-xs font-bold">
             <span class="text-primary uppercase">Déjà payé</span>
-            <span>{{ (invoice.total - invoice.remaining) | currency:'EUR' }}</span>
+            <span>{{ (invoice.total - invoice.remaining) | currency:'TND ' }}</span>
           </div>
           <div class="flex justify-between text-xs font-bold">
             <span class="text-error uppercase">Reste à payer</span>
-            <span>{{ invoice.remaining | currency:'EUR' }}</span>
+            <span>{{ invoice.remaining | currency:'TND ' }}</span>
           </div>
         </div>
       </div>
@@ -108,14 +107,14 @@
           </div>
           <div class="text-right">
             <p class="text-sm uppercase text-on-surface-variant">Reste à payer</p>
-            <p class="font-bold text-lg">{{ invoice.remaining | currency:'EUR' }}</p>
+            <p class="font-bold text-lg">{{ invoice.remaining | currency:'TND ' }}</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] items-end">
           <app-input label="Montant à payer" type="number" placeholder="0.00" icon="payment" [(ngModel)]="paymentAmount"></app-input>
           <div class="grid gap-2">
-            <app-button variant="primary" icon="send" extraClasses="w-full" [disabled]="processingPayment || !paymentAmount" (onClick)="payPartial()">
+            <app-button variant="primary" icon="send" extraClasses="w-full" class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white" [disabled]="processingPayment || !paymentAmount" (onClick)="payPartial()">
               Payer un montant
             </app-button>
             <app-button variant="secondary" icon="paid" extraClasses="w-full" [disabled]="processingPayment || !invoice || invoice.remaining <= 0" (onClick)="markAsPaid()">
@@ -135,8 +134,8 @@
     <div class="mt-20 pt-12 border-t border-outline-variant/10 text-[10px] text-on-surface-variant text-center">
       <p>Merci pour votre confiance. En cas de questions, contactez-nous à {{ adminProfile?.phone || 'notre numéro' }}.
       </p>
-      <p class="mt-1 font-bold">{{ adminProfile?.companyName || 'PRISTINE FLOW' }} - {{ adminProfile?.responsibleName || 'Responsable' }}
-        · Généré par Pristine Flow Application</p>
+      <p class="mt-1 font-bold">{{ adminProfile?.companyName || '' }} - {{ adminProfile?.responsibleName || 'Responsable' }}
+      </p>
     </div>
 
   </div>
@@ -144,7 +143,7 @@
   <!-- Error State -->
   <div *ngIf="!loading && !invoice" class="bg-error/10 text-error p-8 rounded-2xl text-center">
     <span class="material-symbols-outlined text-4xl mb-4">error</span>
-    <h3 class="text-xl font-bold">Erreur</h3>
+    <h3 class="text-xl font-bold">ErrTND </h3>
     <p>Impossible de charger la facture demandée.</p>
   </div>
 

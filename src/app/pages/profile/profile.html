@@ -52,7 +52,7 @@
   </ng-template>
 
   <section class="space-y-4 pt-4 border-t border-outline-variant/10">
-    <label class="font-label text-sm tracking-tight text-on-surface-variant font-medium uppercase px-1">Informations Administrateur</label>
+    <label class="font-label text-sm tracking-tight text-on-surface-variant font-medium uppercase px-1">Informations AdministratTND </label>
     
     <app-input label="Email" placeholder="admin@exemple.com" icon="mail" [(ngModel)]="profile.email" type="email"></app-input>
     <app-input label="Nom du Responsable" placeholder="Nom Prénom" icon="person" [(ngModel)]="profile.responsibleName"></app-input>
@@ -96,6 +96,7 @@
     [disabled]="loading || !profile.email || !profile.companyName"
     (onClick)="save()"
     icon="save"
+    class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white"
   >
     {{ loading ? 'ENREGISTREMENT...' : 'SAUVEGARDER' }}
   </app-button>

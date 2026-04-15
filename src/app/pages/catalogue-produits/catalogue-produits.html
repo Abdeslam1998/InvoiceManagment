@@ -2,7 +2,7 @@
 <section class="space-y-4 mb-6">
   <div class="flex items-center justify-between">
     <h2 class="text-xl font-bold font-headline tracking-tight text-on-surface">Produits</h2>
-    <app-button variant="primary" icon="add" routerLink="/produits/add">
+    <app-button variant="primary" icon="add" class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white" routerLink="/produits/add">
       Create New Product
     </app-button>
   </div>
@@ -75,7 +75,7 @@
               </span>
             </td>
             <td class="px-6 py-4 text-right">
-              <span class="font-headline font-extrabold text-on-surface">{{ product.price | currency:'EUR' }}</span>
+              <span class="font-headline font-extrabold text-on-surface">{{ product.price | currency:'TND ' }}</span>
             </td>
             <td class="px-6 py-4">
               <div class="flex justify-end gap-1">

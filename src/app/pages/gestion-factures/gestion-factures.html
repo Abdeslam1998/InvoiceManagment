@@ -2,7 +2,7 @@
 <section class="space-y-4 mb-6">
   <div class="flex items-center justify-between">
     <h2 class="text-xl font-bold font-headline tracking-tight text-on-surface">Factures</h2>
-    <app-button variant="primary" icon="add" routerLink="/factures/create">
+    <app-button variant="primary" icon="add" class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white"routerLink="/factures/create">
       Create New Invoice
     </app-button>
   </div>
@@ -17,15 +17,15 @@
 <section class="grid grid-cols-1 gap-4 md:grid-cols-3 mb-6">
   <div class="bg-surface-container-low p-4 rounded-xl border-l-4 border-primary">
     <p class="font-label text-[10px] uppercase text-outline font-bold">Total price</p>
-    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalPrice | currency:'EUR' }}</p>
+    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalPrice | currency:'TND ' }}</p>
   </div>
   <div class="bg-surface-container-low p-4 rounded-xl border-l-4 border-error">
     <p class="font-label text-[10px] uppercase text-outline font-bold">Total impayé</p>
-    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalUnpaid | currency:'EUR' }}</p>
+    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalUnpaid | currency:'TND ' }}</p>
   </div>
   <div class="bg-surface-container-low p-4 rounded-xl border-l-4 border-success">
     <p class="font-label text-[10px] uppercase text-outline font-bold">Total payé</p>
-    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalCollected | currency:'EUR' }}</p>
+    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalCollected | currency:'TND ' }}</p>
   </div>
 </section>
 <!-- Invoices List -->
@@ -81,8 +81,8 @@
                 </td>
                 <td class="px-6 py-4 text-right">
                   <div class="flex flex-col items-end">
-                    <span class="font-bold text-on-surface">{{ invoice.total | currency:'EUR' }}</span>
-                    <span *ngIf="invoice.remaining > 0" class="text-[10px] text-error font-medium">Reste: {{ invoice.remaining | currency:'EUR' }}</span>
+                    <span class="font-bold text-on-surface">{{ invoice.total | currency:'TND ' }}</span>
+                    <span *ngIf="invoice.remaining > 0" class="text-[10px] text-error font-medium">Reste: {{ invoice.remaining | currency:'TND ' }}</span>
                   </div>
                 </td>
                 <td class="px-6 py-4">
