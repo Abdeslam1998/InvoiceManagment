@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppStatusChip } from '../../shared/ui/status-chip/status-chip';
@@ -17,15 +17,20 @@ import { Fab } from '../../shared/fab/fab';
 })
 export class GestionFactures implements OnInit {
   private invoiceService = inject(InvoiceService);
+  private route = inject(ActivatedRoute);
 
   invoices: Invoice[] = [];
   searchTerm: string = '';
   loading: boolean = true;
   totalUnpaid = 0;
   totalCollected = 0;
+  totalPrice = 0;
   unpaidCount = 0;
+  filteredClientId: string = '';
+  filteredClientName: string = '';
 
   ngOnInit() {
+    this.filteredClientId = this.route.snapshot.queryParamMap.get('clientId') || '';
     this.loadInvoices();
   }
 
@@ -34,9 +39,15 @@ export class GestionFactures implements OnInit {
     this.invoiceService.getInvoices().subscribe({
       next: (data) => {
         this.invoices = data;
-        this.totalUnpaid = data.reduce((acc, i) => acc + (i.remaining || 0), 0);
-        this.totalCollected = data.reduce((acc, i) => acc + ((i.total || 0) - (i.remaining || 0)), 0);
-        this.unpaidCount = data.filter(i => i.remaining && i.remaining > 0).length;
+        const invoices = this.filteredClientId ? data.filter(i => this.getClientId(i.clientId) === this.filteredClientId) : data;
+        if (this.filteredClientId && !this.filteredClientName) {
+          const clientInvoice = invoices[0];
+          this.filteredClientName = clientInvoice ? this.getClientName(clientInvoice.clientId) : '';
+        }
+        this.totalPrice = invoices.reduce((acc, i) => acc + (i.total || 0), 0);
+        this.totalUnpaid = invoices.reduce((acc, i) => acc + (i.remaining || 0), 0);
+        this.totalCollected = invoices.reduce((acc, i) => acc + ((i.total || 0) - (i.remaining || 0)), 0);
+        this.unpaidCount = invoices.filter(i => i.remaining && i.remaining > 0).length;
         this.loading = false;
       },
       error: (err) => {
@@ -47,9 +58,20 @@ export class GestionFactures implements OnInit {
   }
 
   get filteredInvoices() {
-    if (!this.searchTerm) return this.invoices;
+    let invoices = this.invoices;
+
+    if (this.filteredClientId) {
+      invoices = invoices.filter(i => this.getClientId(i.clientId) === this.filteredClientId);
+    }
+
+    if (!this.searchTerm) return invoices;
+
     const term = this.searchTerm.toLowerCase();
-    return this.invoices.filter(i => 
+    if (this.filteredClientId) {
+      return invoices.filter(i => i.invoiceNumber?.toLowerCase().includes(term));
+    }
+
+    return invoices.filter(i => 
       (i.invoiceNumber && i.invoiceNumber.toLowerCase().includes(term)) ||
       (this.getClientName(i.clientId).toLowerCase().includes(term))
     );
@@ -59,6 +81,19 @@ export class GestionFactures implements OnInit {
     if (!clientId) return 'Client Inconnu';
     if (typeof clientId === 'string') return clientId;
     return clientId.name || 'Client Inconnu';
+  }
+
+  getClientId(clientId: any): string {
+    if (!clientId) return '';
+    if (typeof clientId === 'string') return clientId;
+    return clientId._id || clientId.id || '';
+  }
+
+  printInvoice(id: string | undefined, event: Event) {
+    event.stopPropagation();
+    if (!id) return;
+    const url = `${window.location.origin}/factures/${id}?print=true`;
+    window.open(url, '_blank');
   }
 
   deleteInvoice(id: string | undefined, event: Event) {

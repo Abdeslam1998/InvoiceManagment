@@ -20,6 +20,7 @@
     [disabled]="loading || !name || !email || !phone"
     (onClick)="save()"
     [icon]="isEdit ? 'save' : 'person_add'"
+    class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white"
   >
     {{ isEdit ? 'ENREGISTRER' : 'AJOUTER CLIENT' }}
   </app-button>

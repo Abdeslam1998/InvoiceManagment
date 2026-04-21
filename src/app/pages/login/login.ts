@@ -36,7 +36,7 @@ export class Login {
       },
       error: (err) => {
         this.loading = false;
-        this.error = 'Email ou mot de passe incorrect';
+        this.error = err?.error?.message || 'Email ou mot de passe incorrect';
         console.error(err);
       }
     });

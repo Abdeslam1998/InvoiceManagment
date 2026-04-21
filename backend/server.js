@@ -7,6 +7,7 @@ const adminRoutes = require("./routes/admin");
 const clientRoutes = require("./routes/client");
 const productRoutes = require("./routes/product");
 const invoiceRoutes = require("./routes/invoice");
+const { initDefaultAdmin } = require("./controllers/adminController");
 
 const app = express();
 

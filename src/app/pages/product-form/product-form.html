@@ -14,7 +14,7 @@
     <app-input label="Nom du Produit" placeholder="Ex: Lait Entier 1L" icon="inventory_2" [(ngModel)]="name"></app-input>
 
     <div class="grid grid-cols-2 gap-4">
-      <app-input label="Prix Unitaire (€)" placeholder="1.25" type="number" icon="euro" [(ngModel)]="price"></app-input>
+      <app-input label="Prix Unitaire (€)" placeholder="1.25" type="number" icon="TND o" [(ngModel)]="price"></app-input>
       <app-input label="Stock Initial" placeholder="0" type="number" icon="shelves" [(ngModel)]="stock"></app-input>
     </div>
   </section>
@@ -28,6 +28,7 @@
     [disabled]="loading || !name || price === null || stock === null"
     (onClick)="save()"
     [icon]="isEdit ? 'save' : 'add_box'"
+    class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white"
   >
     {{ isEdit ? 'ENREGISTRER' : 'AJOUTER PRODUIT' }}
   </app-button>

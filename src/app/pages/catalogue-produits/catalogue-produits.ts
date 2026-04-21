@@ -41,8 +41,8 @@ export class CatalogueProduits implements OnInit {
     });
   }
   get filteredProducts() {
-    if (!this.searchTerm) return this.products;
-    const term = this.searchTerm.toLowerCase();
+    const term = this.searchTerm?.trim().toLowerCase() || '';
+    if (!term) return this.products;
     return this.products.filter(p => p.name.toLowerCase().includes(term));
   }
 

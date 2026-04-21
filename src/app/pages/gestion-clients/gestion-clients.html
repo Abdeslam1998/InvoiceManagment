@@ -1,18 +1,33 @@
 <!-- Search & Filter Section -->
-<div class="mb-8">
-  <app-input placeholder="Rechercher par nom, email ou téléphone..." icon="search" [(ngModel)]="searchTerm"
-    (ngModelChange)="onSearch()"></app-input>
-</div>
-<!-- KPI Summary / Header Action -->
-<div class="flex justify-between items-end mb-6">
-  <div>
-    <p class="font-label text-[10px] font-medium uppercase tracking-wider text-outline mb-1">Active Database</p>
-    <h2 class="font-headline font-bold text-3xl text-on-surface">Clients</h2>
+<section class="space-y-4 mb-6">
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-bold font-headline tracking-tight text-on-surface">Clients</h2>
+    <app-button
+  variant="primary"
+  icon="add"
+  routerLink="/clients/add"
+  class="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold bg-primary text-white"
+>
+  Create New Client
+</app-button>
   </div>
-  <app-button variant="primary" icon="person_add" routerLink="/clients/add">
-    Add Client
-  </app-button>
-</div>
+  <div class="grid grid-cols-1 gap-3">
+    <app-input
+      placeholder="Rechercher par nom, email ou téléphone..."
+      icon="search"
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearch()"></app-input>
+  </div>
+</section>
+
+<!-- KPI Summary -->
+<section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="bg-surface-container-low p-4 rounded-xl border-l-4 border-primary">
+    <p class="font-label text-[10px] uppercase text-outline font-bold">Total Clients</p>
+    <p class="font-headline text-2xl font-bold text-on-surface">{{ totalClients }}</p>
+  </div>
+</section>
+
 <!-- Client Table -->
 <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0px_12px_32px_rgba(43,52,55,0.04)]">
   <!-- Loading Skeleton -->
@@ -67,6 +82,8 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex justify-end gap-1">
+                  <app-button variant="ghost" icon="receipt_long" [routerLink]="['/factures']"
+                    [queryParams]="{ clientId: client._id }" extraClasses="scale-75"></app-button>
                   <app-button variant="ghost" icon="edit" [routerLink]="['/clients/edit', client._id]"
                     extraClasses="scale-75"></app-button>
                   <app-button variant="ghost" icon="delete" (onClick)="deleteClient(client._id)"
@@ -83,7 +100,7 @@
   <ng-template #noClients>
     <div class="text-center py-20">
       <span class="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4">person_off</span>
-      <p class="text-on-surface-variant text-sm font-medium">Aucun client trouvé dans la base.</p>
+      <p class="text-on-surface-variant text-sm font-medium">Aucun client trouvé.</p>
     </div>
   </ng-template>
 </div>

@@ -22,26 +22,29 @@ export class GestionClients implements OnInit {
   filteredClients: Client[] = [];
   searchTerm: string = '';
   loading = true;
+  totalClients = 0;
 
   ngOnInit(): void {
-    this.clientService.getClients().subscribe({
-      next: (data) => {
-        this.clients = data;
-        this.filteredClients = [...data]; // clone
-      }
-    });
+    this.loadClients();
   }
 
   trackById(index: number, client: Client) {
     return client._id;
   }
+
   loadClients(): void {
+    this.loading = true;
     this.clientService.getClients().subscribe({
       next: (data) => {
         this.clients = data;
-        this.onSearch(); // 🔥 IMPORTANT
+        this.totalClients = data.length;
+        this.onSearch();
+        this.loading = false;
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+      }
     });
   }
 
