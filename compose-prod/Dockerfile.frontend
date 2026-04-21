@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1.7
+
+############################
+# Frontend build
+############################
+FROM node:20-alpine AS frontend-build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY angular.json ./
+COPY tsconfig*.json ./
+COPY tailwind.config.js ./
+COPY src ./src
+COPY public ./public
+RUN npm run build -- --configuration production
+
+############################
+# Frontend runtime (Nginx)
+############################
+FROM nginx:1.27-alpine AS frontend-runtime
+# Copy custom nginx config template
+RUN mkdir -p /etc/nginx/templates && \
+    printf 'server {\n  listen 80;\n  server_name _;\n  root /usr/share/nginx/html;\n  index index.html;\n\n  # Handle Angular routing - fallback to index.html for SPA\n  location / {\n    try_files $uri $uri/ /index.html;\n  }\n\n  # Cache static assets\n  location /assets/ {\n    expires 1y;\n    add_header Cache-Control "public, immutable";\n  }\n\n  # Serve environment variables\n  location /assets/env.js {\n    add_header Content-Type application/javascript;\n    add_header Cache-Control "no-cache";\n    return 200 "window.env = { API_URL: '\''${API_URL}'\'' }";\n  }\n\n  # Handle favicon and other root files\n  location ~* \.(ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$ {\n    expires 1y;\n    add_header Cache-Control "public, immutable";\n  }\n}\n' > /etc/nginx/templates/default.conf.template
+
+# Set default API_URL if not provided
+ENV API_URL=http://localhost:3000/api
+COPY --from=frontend-build /app/dist/pristine-flow/browser /usr/share/nginx/html
+EXPOSE 80
+# Use the default nginx entrypoint which processes templates
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,68 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: invoicemgmt-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - traefik-net
+
+  backend:
+    image: ghcr.io/abdeslam1998/invoicemanagment-backend:latest
+    container_name: invoicemgmt-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      JWT_SECRET: "JIy6K885S{R3$$iN,v3LaJL@39JtvB)}x"
+      MONGO_URI: mongodb://mongo:27017/laiterie
+      FRONTEND_URL: https://www.gestionfacture.d-itcompanytunis.com
+    depends_on:
+      mongo:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`gestionfacture-backend.d-itcompanytunis.com`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+    networks:
+      - traefik-net
+
+  frontend:
+    image: ghcr.io/abdeslam1998/invoicemanagment-frontend:latest
+    container_name: invoicemgmt-frontend
+    restart: unless-stopped
+    environment:
+      API_URL: https://gestionfacture-backend.d-itcompanytunis.com/api
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`www.gestionfacture.d-itcompanytunis.com`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.routers.frontend-redirect.rule=Host(`gestionfacture.d-itcompanytunis.com`)"
+      - "traefik.http.routers.frontend-redirect.entrypoints=web,websecure"
+      - "traefik.http.routers.frontend-redirect.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.frontend-redirect.middlewares=redirect-to-www"
+      - "traefik.http.middlewares.redirect-to-www.redirectregex.regex=^https?://gestionfacture.d-itcompanytunis.com/(.*)"
+      - "traefik.http.middlewares.redirect-to-www.redirectregex.replacement=https://www.gestionfacture.d-itcompanytunis.com/$${1}"
+      - "traefik.http.middlewares.redirect-to-www.redirectregex.permanent=true"
+    networks:
+      - traefik-net
+
+volumes:
+  mongo_data:
+
+networks:
+  traefik-net:
+    name: traefik-net
+    external: true

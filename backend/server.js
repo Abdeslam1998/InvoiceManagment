@@ -10,14 +10,23 @@ const invoiceRoutes = require("./routes/invoice");
 const { initDefaultAdmin } = require("./controllers/adminController");
 
 const app = express();
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(async () => {
+  .then(() => {
     console.log("MongoDB connected");
-    await initDefaultAdmin();
+    // Initialize default admin after DB connection
+    const { initDefaultAdmin } = require("./controllers/adminController");
+    initDefaultAdmin();
   })
   .catch(err => console.error(err));
 

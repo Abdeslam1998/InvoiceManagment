@@ -54,6 +54,41 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
+## Environment Configuration
+
+The application supports runtime environment configuration for the API URL.
+
+### Local Development
+By default, the application connects to `http://localhost:3000/api` for the backend API.
+
+### Docker Deployment
+Create a `.env` file in the project root (copy from `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file to set your API URL:
+
+```env
+# For local Docker development
+API_URL=http://localhost:3000/api
+
+# For production
+API_URL=https://gestionfacture-backend.d-itcompanytunis.com/api
+```
+
+### Docker Compose
+You can also set the API URL directly in `compose-prod/docker-compose.yml`:
+
+```yaml
+frontend:
+  environment:
+    API_URL: https://your-backend-domain.com/api
+```
+
+If no `API_URL` is specified, the application defaults to `http://localhost:3000/api`.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
