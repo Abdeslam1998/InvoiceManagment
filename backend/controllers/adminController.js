@@ -5,13 +5,13 @@ const jwt = require("jsonwebtoken");
 // créer un admin par défaut si aucun n’existe
 const initDefaultAdmin = async () => {
   try {
-    const existing = await Admin.findOne({ email: "admin@fromagim.com" });
+    const existing = await Admin.findOne({ email: "admin@test.com" });
     if (existing) return;
 
     const hashedPassword = await bcrypt.hash("Azerty@1998", 10);
 
     const admin = new Admin({
-      email: "admin@fromagim.com",
+      email: "admin@test.com",
       password: hashedPassword
     });
 
